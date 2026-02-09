@@ -1,0 +1,14 @@
+# Core dependencies
+requests>=2.31.0          # Canvas API calls
+python-dotenv>=1.0.0      # Environment variable management
+pandas>=2.0.0             # Data manipulation
+openpyxl>=3.1.0           # Excel file creation
+xlsxwriter>=3.1.0         # Excel formatting (conditional colors, etc.)
+streamlit>=1.28.0         # Web GUI framework
+
+# Build tools (for creating standalone executable)
+pyinstaller>=6.0.0         # Bundling app into .exe
+pyinstaller-hooks-contrib>=2024.0  # Additional PyInstaller hooks
+
+# Optional dependencies (for future phases)
+# notion-client>=2.0.0    # Notion integration (Phase 3)
