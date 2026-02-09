@@ -34,7 +34,7 @@ def main():
         str(app_path),
         "--server.headless=true",
         "--browser.gatherUsageStats=false",
-        "--server.port=8501",
+        "--global.developmentMode=false",
     ]
 
     # Launch Streamlit

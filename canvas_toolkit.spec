@@ -9,16 +9,29 @@ This creates a standalone executable in dist/canvas_toolkit/
 """
 
 import sys
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata, collect_all
 
-# Collect all Streamlit data files and submodules
+# Collect ALL numpy files (binaries, data, metadata)
+numpy_datas, numpy_binaries, numpy_hiddenimports = collect_all('numpy')
+
+# Collect ALL pandas files
+pandas_datas, pandas_binaries, pandas_hiddenimports = collect_all('pandas')
+
+# Collect all Streamlit data files, metadata, and submodules
 streamlit_datas = collect_data_files('streamlit', include_py_files=True)
+streamlit_datas += copy_metadata('streamlit')  # FIX: Include package metadata
 streamlit_hiddenimports = collect_submodules('streamlit')
+
+# Combine all data files
+all_datas = streamlit_datas + numpy_datas + pandas_datas
 
 # Additional hidden imports for Canvas Toolkit
 hidden_imports = [
     'requests',
     'pandas',
+    'numpy',  # Explicit numpy import
+    'numpy.core',
+    'numpy.core._multiarray_umath',
     'openpyxl',
     'xlsxwriter',
     'canvas_toolkit',
@@ -34,9 +47,9 @@ hidden_imports = [
 a = Analysis(
     ['launcher.py'],
     pathex=[],
-    binaries=[],
-    datas=streamlit_datas + [('canvas_toolkit.py', '.')],  # Include main app as data file
-    hiddenimports=streamlit_hiddenimports + hidden_imports,
+    binaries=numpy_binaries + pandas_binaries,
+    datas=all_datas + [('canvas_toolkit.py', '.')],  # Include main app as data file
+    hiddenimports=streamlit_hiddenimports + numpy_hiddenimports + pandas_hiddenimports + hidden_imports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

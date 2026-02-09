@@ -51,7 +51,9 @@ See [SETUP.md](SETUP.md) for detailed instructions with screenshots.
 streamlit run canvas_toolkit.py
 ```
 
-Your browser will open automatically. Enter your API token, select courses, and export!
+Your browser will open automatically to `http://localhost:8501`
+
+**👉 New to Python? See [QUICK_START.md](QUICK_START.md) for a beginner-friendly guide with screenshots!**
 
 ---
 
