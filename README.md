@@ -4,6 +4,8 @@
 
 Built for MBA students who want to manage their assignments outside of Canvas. No coding required - just run the app and export your data.
 
+📺 **[Watch Demo Video](https://www.youtube.com/watch?v=CSk8Edhxy3I)** - See it in action!
+
 ---
 
 ## ✨ Features
@@ -16,44 +18,44 @@ Built for MBA students who want to manage their assignments outside of Canvas. N
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (5 Minutes)
 
-### 1. Install Python
+**👉 New to Python? See [QUICK_START.md](QUICK_START.md) for a beginner-friendly guide with screenshots!**
 
-Download and install Python 3.8+ from [python.org](https://www.python.org/downloads/)
+### Windows Users (Easiest)
 
-### 2. Install Canvas Toolkit
+1. **Install Python** (one-time setup)
+   - Download from [python.org](https://www.python.org/downloads/)
+   - ✅ Check "Add Python to PATH" during install
+   - Click "Install Now"
+
+2. **Install Canvas Toolkit**
+   - Download this repo (green "Code" button → "Download ZIP")
+   - Extract and double-click `install-canvas-toolkit.bat`
+   - Wait for "Installation successful!"
+
+3. **Run the app**
+   - Double-click `run-canvas-toolkit.bat`
+   - Browser opens automatically!
+
+### Mac/Linux or Command Line
 
 ```bash
-# Option A: Install from GitHub
+# Install
 pip install git+https://github.com/nathanaeljyhlee/canvas-toolkit.git
 
-# Option B: Clone and install locally
-git clone https://github.com/nathanaeljyhlee/canvas-toolkit.git
-cd canvas-toolkit
-pip install -r requirements.txt
-```
-
-### 3. Get Your Canvas API Token
-
-See [SETUP.md](SETUP.md) for detailed instructions with screenshots.
-
-**Quick version:**
-1. Log into Canvas
-2. Account → Settings
-3. Scroll to "Approved Integrations"
-4. Click "+ New Access Token"
-5. Copy the token
-
-### 4. Run the App
-
-```bash
+# Run
 streamlit run canvas_toolkit.py
 ```
 
-Your browser will open automatically to `http://localhost:8501`
+### Get Your Canvas API Token
 
-**👉 New to Python? See [QUICK_START.md](QUICK_START.md) for a beginner-friendly guide with screenshots!**
+1. Log into Canvas → Account → Settings
+2. Scroll to "Approved Integrations"
+3. Click "+ New Access Token"
+4. Copy the token (shown only once!)
+
+Full instructions: [SETUP.md](SETUP.md)
 
 ---
 
@@ -95,15 +97,17 @@ Choose "JSON" format for a structured data export with metadata (export timestam
 
 ---
 
-## 🛠️ Advanced Usage
+## 🛠️ Features
 
-### Filter by Date Range
+### Future-Only Filter
 
-Coming in Phase 2! For now, export all assignments and filter in Excel.
+Use the **"Show only upcoming assignments"** checkbox to filter out past assignments and focus on what's coming up.
 
-### Sync with Notion
+### Upcoming Features
 
-Coming in Phase 3! If you use Notion for task management, we'll add automatic sync.
+- **Announcements & Modules** - Export course announcements and module content
+- **Notion Sync** - Automatic sync with Notion for task management
+- **Date Range Filters** - Export assignments from specific time periods
 
 ---
 
