@@ -219,6 +219,10 @@ def main():
                         for a in announcements_data
                     ]
 
+                    # Sort by posted date (newest first) for consistent display
+                    if announcements:
+                        announcements.sort(key=lambda a: a.posted_at or "", reverse=True)
+
                     if not announcements:
                         st.info("No announcements found in the last 30 days")
 
