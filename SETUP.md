@@ -134,22 +134,29 @@ pip install -r requirements.txt
    - "Select all courses" is checked by default
    - Or uncheck and select specific courses
 
-6. **Choose Export Format**
+6. **Choose Content Types**
+   - **Assignments** ✓ (checked by default)
+   - **Announcements** (last 30 days with HTML parsing)
+   - **Modules** (course structure with all content)
+   - Select one or multiple content types
+
+7. **Choose Export Format**
    - **Excel** (recommended): Beautiful formatting, multiple sheets
-   - **CSV**: Simple, import to Google Sheets
+   - **CSV**: Simple, import to Google Sheets (creates separate files for each content type)
    - **JSON**: Structured data with metadata
 
-7. **Click "Export Assignments"**
+8. **Click "Export Content"**
    - Wait for spinner (fetching data)
-   - See stats: Total assignments, courses, upcoming
+   - See stats: Assignments, announcements, module items counts
 
-8. **Download File**
+9. **Download File**
    - Click "Download [Format] File" button
    - File saves to your Downloads folder
+   - For CSV with multiple types, files saved to current directory
 
-9. **Preview (Optional)**
-   - Click "Preview" expander
-   - See first 10 assignments in table
+10. **Preview (Optional)**
+    - Click "Preview" expander
+    - See first 10 items from each content type
 
 ---
 

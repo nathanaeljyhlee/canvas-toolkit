@@ -1,6 +1,6 @@
 # Canvas Toolkit - Quick Start Guide
 
-**Get your Canvas assignments in Excel with 3 simple steps.**
+**Get your Canvas content (assignments, announcements, modules) in Excel with 3 simple steps.**
 
 No coding required. Takes 5 minutes.
 
@@ -58,12 +58,13 @@ No coding required. Takes 5 minutes.
 4. Enter purpose: "Canvas Toolkit"
 5. Copy the token (shown only once!)
 
-**Export your assignments:**
+**Export your content:**
 1. Paste your API token in the app
 2. Select which courses you want
-3. Choose export format (Excel recommended)
-4. Click "Export Assignments"
-5. Download your file!
+3. **Choose content types** (Assignments ✓, Announcements, Modules)
+4. Choose export format (Excel recommended)
+5. Click "Export Content"
+6. Download your file!
 
 ---
 

@@ -1,8 +1,8 @@
 # Canvas Toolkit
 
-**Export your Canvas LMS assignments to Excel, CSV, or JSON with one click.**
+**Export your Canvas LMS content (assignments, announcements, modules) to Excel, CSV, or JSON with one click.**
 
-Built for MBA students who want to manage their assignments outside of Canvas. No coding required - just run the app and export your data.
+Built for MBA students who want to manage their course content outside of Canvas. No coding required - just run the app and export your data.
 
 📺 **[Watch Demo Video](https://www.youtube.com/watch?v=CSk8Edhxy3I)** - See it in action!
 
@@ -10,8 +10,11 @@ Built for MBA students who want to manage their assignments outside of Canvas. N
 
 ## ✨ Features
 
+- **📚 Multi-Content Export**: Assignments, announcements (last 30 days), and module content
 - **📊 Multiple Export Formats**: Excel (with formatting), CSV, or JSON
 - **🎨 Beautiful Excel Output**: Conditional formatting, filters, hyperlinks, multiple sheets
+- **🔍 Smart Parsing**: Extracts plain text and links from HTML announcements
+- **📑 Hierarchical Modules**: Preserves Canvas module structure with indentation
 - **🚀 Zero Configuration**: Auto-detects all your courses
 - **🔒 Secure**: Your API token never leaves your computer
 - **💻 Cross-Platform**: Works on Windows, Mac, and Linux
@@ -66,24 +69,33 @@ Full instructions: [SETUP.md](SETUP.md)
 1. Run `streamlit run canvas_toolkit.py`
 2. Enter your Canvas API token in the sidebar
 3. Select courses to export (or "Select all")
-4. Choose "Excel" as export format
-5. Click "Export Assignments"
-6. Download your formatted Excel file
+4. **Choose content types** (Assignments ✓, Announcements, Modules)
+5. Choose "Excel" as export format
+6. Click "Export Content"
+7. Download your formatted Excel file
 
 **Excel output includes:**
-- Multiple sheets (one per course + "All Assignments")
-- Conditional formatting (overdue = red highlight)
+- Multiple sheets (All Assignments, All Announcements, All Modules)
+- Conditional formatting:
+  - Assignments: Overdue (red), Upcoming (yellow)
+  - Announcements: Recent (last 7 days, green)
 - Clickable Canvas links
+- Module items with hierarchical indentation
 - Filters on all columns
 - Auto-sized columns
 
 ### Export to CSV
 
-Same steps as Excel, but choose "CSV" format. Great for importing into Google Sheets or other tools.
+Same steps as Excel, but choose "CSV" format. When multiple content types are selected, creates separate files:
+- `filename_assignments.csv`
+- `filename_announcements.csv`
+- `filename_modules.csv`
+
+Great for importing into Google Sheets or other tools.
 
 ### Export to JSON
 
-Choose "JSON" format for a structured data export with metadata (export timestamp, course list, etc.).
+Choose "JSON" format for a structured data export with metadata (export timestamp, counts, etc.). All content types are combined in one file with separate sections.
 
 ---
 
@@ -92,12 +104,21 @@ Choose "JSON" format for a structured data export with metadata (export timestam
 - **Weekly Planning**: Export upcoming assignments to plan your week
 - **Deadline Tracking**: See all deadlines in one place (not scattered across Canvas)
 - **Cross-Course View**: Compare workload across all courses
-- **Offline Access**: Work with assignment data when offline
+- **Announcement Tracking**: Keep important announcements in one searchable file
+- **Module Navigation**: Export course roadmap with all readings, assignments, and resources
+- **Offline Access**: Work with course content when offline
 - **Custom Analysis**: Import into Excel/Sheets for custom tracking
 
 ---
 
 ## 🛠️ Features
+
+### Content Type Selection
+
+Choose which content to export:
+- **📚 Assignments** (default): All assignments with due dates, points, submission types
+- **📢 Announcements**: Last 30 days, with HTML parsing and embedded link extraction
+- **📑 Modules**: Course structure with all pages, files, assignments, and resources
 
 ### Future-Only Filter
 
@@ -105,9 +126,10 @@ Use the **"Show only upcoming assignments"** checkbox to filter out past assignm
 
 ### Upcoming Features
 
-- **Announcements & Modules** - Export course announcements and module content
+- **Date Range Picker** - Custom date ranges for announcements (7/30/90 days)
+- **Module Filtering** - Filter by item type (Page, Assignment, Quiz, etc.)
 - **Notion Sync** - Automatic sync with Notion for task management
-- **Date Range Filters** - Export assignments from specific time periods
+- **Attachment Download** - Auto-download announcement attachments
 
 ---
 
