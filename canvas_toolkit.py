@@ -156,17 +156,21 @@ def main():
                 )
 
                 # Convert to Assignment objects
-                assignments = [
+                all_assignments = [
                     Assignment.from_canvas_api(a)
                     for a in all_assignments_data
                 ]
 
+                total_count = len(all_assignments)
+
                 # Apply filter if requested
                 if show_future_only:
                     assignments = [
-                        a for a in assignments
+                        a for a in all_assignments
                         if a.is_upcoming or not a.due_at  # Include upcoming + no due date
                     ]
+                else:
+                    assignments = all_assignments
 
                 if not assignments:
                     st.warning("No assignments found in selected courses" +
@@ -188,7 +192,15 @@ def main():
 
                 # Display stats
                 col1, col2, col3 = st.columns(3)
-                col1.metric("Total Assignments", len(assignments))
+
+                # Show filtered vs total if filter is active
+                if show_future_only:
+                    col1.metric("Exported Assignments", len(assignments),
+                               delta=f"{total_count} total",
+                               delta_color="off")
+                else:
+                    col1.metric("Total Assignments", len(assignments))
+
                 col2.metric("Courses", len(selected_courses))
 
                 upcoming = sum(1 for a in assignments if a.is_upcoming)
