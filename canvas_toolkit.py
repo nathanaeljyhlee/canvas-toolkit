@@ -4,6 +4,8 @@ import streamlit as st
 from pathlib import Path
 from canvas_toolkit.client import CanvasClient, AuthenticationError, CanvasAPIError
 from canvas_toolkit.models import Assignment
+from canvas_toolkit.models.announcement import Announcement
+from canvas_toolkit.models.module import Module, ModuleItem
 from canvas_toolkit.writers import ExcelWriter, CSVWriter, JSONWriter
 
 
@@ -115,6 +117,24 @@ def main():
     # Export options
     st.subheader("📥 Export Options")
 
+    # Content type selection
+    st.markdown("**Content to Export:**")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        include_assignments = st.checkbox("📚 Assignments", value=True)
+    with col2:
+        include_announcements = st.checkbox("📢 Announcements", value=False, help="Last 30 days")
+    with col3:
+        include_modules = st.checkbox("📑 Modules", value=False)
+
+    if not any([include_assignments, include_announcements, include_modules]):
+        st.warning("⚠️ Select at least one content type")
+        st.stop()
+
+    st.divider()
+
+    # Format and filename
     col1, col2 = st.columns(2)
 
     with col1:
@@ -134,58 +154,133 @@ def main():
     with col2:
         filename = st.text_input(
             "Filename",
-            value=f"canvas_assignments.{format_extensions[export_format]}",
+            value=f"canvas_export.{format_extensions[export_format]}",
             help="Output filename"
         )
 
-    # Filter options
-    show_future_only = st.checkbox(
-        "📅 Show only upcoming assignments",
-        value=False,
-        help="Filter out past assignments (due date >= today or no due date)"
-    )
+    # Filter options (only for assignments)
+    if include_assignments:
+        show_future_only = st.checkbox(
+            "📅 Show only upcoming assignments",
+            value=False,
+            help="Filter out past assignments (due date >= today or no due date)"
+        )
+    else:
+        show_future_only = False
 
     # Export button
-    if st.button("📥 Export Assignments", type="primary", use_container_width=True):
-        with st.spinner("Fetching assignments..."):
+    if st.button("📥 Export Content", type="primary", use_container_width=True):
+        with st.spinner("Fetching content from Canvas..."):
             try:
+                # Initialize content variables
+                assignments = None
+                announcements = None
+                modules = None
+                total_assignments = 0
+
                 # Fetch assignments
-                all_assignments_data = client.get_all_assignments(
-                    course_ids=list(selected_courses.keys()),
-                    include_concluded=False
-                )
+                if include_assignments:
+                    all_assignments_data = client.get_all_assignments(
+                        course_ids=list(selected_courses.keys()),
+                        include_concluded=False
+                    )
 
-                # Convert to Assignment objects
-                all_assignments = [
-                    Assignment.from_canvas_api(a)
-                    for a in all_assignments_data
-                ]
-
-                total_count = len(all_assignments)
-
-                # Apply filter if requested
-                if show_future_only:
-                    assignments = [
-                        a for a in all_assignments
-                        if a.is_upcoming or not a.due_at  # Include upcoming + no due date
+                    # Convert to Assignment objects
+                    all_assignments = [
+                        Assignment.from_canvas_api(a)
+                        for a in all_assignments_data
                     ]
-                else:
-                    assignments = all_assignments
 
-                if not assignments:
-                    st.warning("No assignments found in selected courses" +
-                              (" (try unchecking 'Show only upcoming')" if show_future_only else ""))
+                    total_assignments = len(all_assignments)
+
+                    # Apply filter if requested
+                    if show_future_only:
+                        assignments = [
+                            a for a in all_assignments
+                            if a.is_upcoming or not a.due_at  # Include upcoming + no due date
+                        ]
+                    else:
+                        assignments = all_assignments
+
+                    if not assignments:
+                        st.warning("No assignments found in selected courses" +
+                                  (" (try unchecking 'Show only upcoming')" if show_future_only else ""))
+
+                # Fetch announcements
+                if include_announcements:
+                    announcements_data = client.get_all_announcements(
+                        course_ids=list(selected_courses.keys()),
+                        days_back=30
+                    )
+
+                    # Convert to Announcement objects
+                    announcements = [
+                        Announcement.from_canvas_api(a)
+                        for a in announcements_data
+                    ]
+
+                    if not announcements:
+                        st.info("No announcements found in the last 30 days")
+
+                # Fetch modules
+                if include_modules:
+                    modules_data = client.get_all_modules(
+                        course_ids=list(selected_courses.keys())
+                    )
+
+                    # Flatten modules to items
+                    all_items = []
+                    for mod_data in modules_data:
+                        mod = Module.from_canvas_api(
+                            mod_data,
+                            mod_data["_course_name"]
+                        )
+                        all_items.extend(mod.items)
+
+                    modules = all_items if all_items else None
+
+                    if not modules:
+                        st.info("No module items found")
+
+                # Check if we have any content
+                if not any([assignments, announcements, modules]):
+                    st.error("No content found to export")
                     st.stop()
 
                 # Export to selected format
                 if export_format == "Excel":
                     writer = ExcelWriter(filename)
+                    output_path = writer.write(
+                        assignments=assignments,
+                        announcements=announcements,
+                        modules=modules
+                    )
                 elif export_format == "CSV":
-                    writer = CSVWriter(filename)
+                    # Generate separate CSV files for each content type
+                    output_paths = []
+                    if assignments:
+                        csv_filename = filename.replace(".csv", "_assignments.csv")
+                        writer = CSVWriter(csv_filename)
+                        writer.write(assignments)
+                        output_paths.append(csv_filename)
+                    if announcements:
+                        csv_filename = filename.replace(".csv", "_announcements.csv")
+                        writer = CSVWriter(csv_filename)
+                        writer.write(announcements)
+                        output_paths.append(csv_filename)
+                    if modules:
+                        csv_filename = filename.replace(".csv", "_modules.csv")
+                        writer = CSVWriter(csv_filename)
+                        writer.write(modules)
+                        output_paths.append(csv_filename)
+                    output_path = output_paths[0]  # For download button
                 else:  # JSON
                     writer = JSONWriter(filename)
-
-                output_path = writer.write(assignments)
+                    output_path = writer.write(
+                        assignments=assignments,
+                        announcements=announcements,
+                        modules=modules
+                    )
 
                 # Success message with stats
                 st.success(f"✅ Export complete!")
@@ -193,38 +288,64 @@ def main():
                 # Display stats
                 col1, col2, col3 = st.columns(3)
 
-                # Show filtered vs total if filter is active
-                if show_future_only:
-                    col1.metric("Exported Assignments", len(assignments),
-                               delta=f"{total_count} total",
-                               delta_color="off")
+                if assignments:
+                    if show_future_only:
+                        col1.metric("Assignments", len(assignments),
+                                   delta=f"{total_assignments} total",
+                                   delta_color="off")
+                    else:
+                        col1.metric("Assignments", len(assignments))
                 else:
-                    col1.metric("Total Assignments", len(assignments))
+                    col1.metric("Assignments", 0)
 
-                col2.metric("Courses", len(selected_courses))
+                if announcements:
+                    col2.metric("Announcements", len(announcements))
+                else:
+                    col2.metric("Announcements", 0)
 
-                upcoming = sum(1 for a in assignments if a.is_upcoming)
-                col3.metric("Upcoming", upcoming)
+                if modules:
+                    col3.metric("Module Items", len(modules))
+                else:
+                    col3.metric("Module Items", 0)
 
                 # Download button
-                with open(output_path, 'rb') as f:
-                    st.download_button(
-                        label=f"📄 Download {export_format} File",
-                        data=f.read(),
-                        file_name=filename,
-                        mime={
-                            'Excel': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                            'CSV': 'text/csv',
-                            'JSON': 'application/json'
-                        }[export_format],
-                        use_container_width=True
-                    )
+                if export_format == "CSV" and len([x for x in [assignments, announcements, modules] if x]) > 1:
+                    # Multiple CSV files created
+                    st.info(f"📁 Created {len(output_paths)} CSV files: " + ", ".join([p for p in output_paths]))
+                    st.markdown("*Files are saved in the current directory*")
+                else:
+                    # Single file download
+                    with open(output_path, 'rb') as f:
+                        st.download_button(
+                            label=f"📄 Download {export_format} File",
+                            data=f.read(),
+                            file_name=filename if export_format != "CSV" else output_path,
+                            mime={
+                                'Excel': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                'CSV': 'text/csv',
+                                'JSON': 'application/json'
+                            }[export_format],
+                            use_container_width=True
+                        )
 
-                # Preview (first 10 assignments)
-                with st.expander("📋 Preview (first 10 assignments)"):
+                # Preview
+                with st.expander("📋 Preview"):
                     import pandas as pd
-                    preview_df = pd.DataFrame([a.to_dict() for a in assignments[:10]])
-                    st.dataframe(preview_df, use_container_width=True)
+
+                    if assignments:
+                        st.markdown("**Assignments (first 10):**")
+                        preview_df = pd.DataFrame([a.to_dict() for a in assignments[:10]])
+                        st.dataframe(preview_df, use_container_width=True)
+
+                    if announcements:
+                        st.markdown("**Announcements (first 10):**")
+                        preview_df = pd.DataFrame([a.to_dict() for a in announcements[:10]])
+                        st.dataframe(preview_df, use_container_width=True)
+
+                    if modules:
+                        st.markdown("**Module Items (first 10):**")
+                        preview_df = pd.DataFrame([m.to_dict() for m in modules[:10]])
+                        st.dataframe(preview_df, use_container_width=True)
 
             except CanvasAPIError as e:
                 st.error(f"Export failed: {str(e)}")

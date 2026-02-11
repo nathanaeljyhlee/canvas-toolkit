@@ -2,6 +2,7 @@
 
 import requests
 from typing import List, Dict, Optional
+from datetime import datetime, timedelta
 from .exceptions import CanvasAPIError, AuthenticationError, RateLimitError
 
 
@@ -185,3 +186,142 @@ class CanvasClient:
                 continue
 
         return all_assignments
+
+    def get_course_announcements(self, course_id: str, days_back: int = 30) -> List[Dict]:
+        """
+        Fetch recent announcements for a course. Uses discussion_topics endpoint with only_announcements filter.
+
+        Args:
+            course_id: Canvas course ID
+            days_back: Number of days back to fetch announcements (default: 30)
+
+        Returns:
+            List of announcement dictionaries
+        """
+        # Calculate start date
+        start_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
+
+        endpoint = f"/api/v1/courses/{course_id}/discussion_topics"
+        params = {
+            "only_announcements": True,
+            "start_date": start_date
+        }
+
+        announcements = self._make_request(endpoint, params)
+
+        # Add course_id to each announcement for reference
+        for announcement in announcements:
+            announcement["_course_id"] = course_id
+
+        return announcements
+
+    def get_all_announcements(
+        self,
+        course_ids: Optional[List[str]] = None,
+        days_back: int = 30
+    ) -> List[Dict]:
+        """
+        Fetch announcements from all courses or specific courses.
+
+        Args:
+            course_ids: Optional list of course IDs to fetch. If None, fetches from all courses.
+            days_back: Number of days back to fetch announcements (default: 30)
+
+        Returns:
+            List of all announcements with added _course_name field
+        """
+        # Get courses if not specified
+        if course_ids is None:
+            courses = self.get_courses(include_concluded=False)
+            course_ids = [str(c["id"]) for c in courses]
+            course_names = {str(c["id"]): c["name"] for c in courses}
+        else:
+            # Fetch course names for the specified IDs
+            all_courses = self.get_courses(include_concluded=True)
+            course_names = {str(c["id"]): c["name"] for c in all_courses if str(c["id"]) in course_ids}
+
+        all_announcements = []
+
+        for course_id in course_ids:
+            try:
+                announcements = self.get_course_announcements(course_id, days_back)
+
+                # Add course name to each announcement
+                course_name = course_names.get(course_id, "Unknown Course")
+                for announcement in announcements:
+                    announcement["_course_name"] = course_name
+
+                all_announcements.extend(announcements)
+
+            except CanvasAPIError as e:
+                # Log error but continue with other courses
+                print(f"Warning: Could not fetch announcements from course {course_id}: {e}")
+                continue
+
+        return all_announcements
+
+    def get_course_modules(self, course_id: str) -> List[Dict]:
+        """
+        Fetch modules for a course. Uses include[]=items and include[]=content_details to get everything in one call.
+
+        Args:
+            course_id: Canvas course ID
+
+        Returns:
+            List of module dictionaries
+        """
+        endpoint = f"/api/v1/courses/{course_id}/modules"
+        params = {
+            "include[]": ["items", "content_details"]
+        }
+
+        modules = self._make_request(endpoint, params)
+
+        # Add course_id to each module for reference
+        for module in modules:
+            module["_course_id"] = course_id
+
+        return modules
+
+    def get_all_modules(
+        self,
+        course_ids: Optional[List[str]] = None
+    ) -> List[Dict]:
+        """
+        Fetch modules from all courses or specific courses.
+
+        Args:
+            course_ids: Optional list of course IDs to fetch. If None, fetches from all courses.
+
+        Returns:
+            List of all modules with added _course_name field
+        """
+        # Get courses if not specified
+        if course_ids is None:
+            courses = self.get_courses(include_concluded=False)
+            course_ids = [str(c["id"]) for c in courses]
+            course_names = {str(c["id"]): c["name"] for c in courses}
+        else:
+            # Fetch course names for the specified IDs
+            all_courses = self.get_courses(include_concluded=True)
+            course_names = {str(c["id"]): c["name"] for c in all_courses if str(c["id"]) in course_ids}
+
+        all_modules = []
+
+        for course_id in course_ids:
+            try:
+                modules = self.get_course_modules(course_id)
+
+                # Add course name to each module
+                course_name = course_names.get(course_id, "Unknown Course")
+                for module in modules:
+                    module["_course_name"] = course_name
+
+                all_modules.extend(modules)
+
+            except CanvasAPIError as e:
+                # Log error but continue with other courses
+                print(f"Warning: Could not fetch modules from course {course_id}: {e}")
+                continue
+
+        return all_modules
