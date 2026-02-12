@@ -3,6 +3,7 @@
 import requests
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
+from urllib.parse import urlparse
 from .exceptions import CanvasAPIError, AuthenticationError, RateLimitError
 
 
@@ -16,7 +17,28 @@ class CanvasClient:
         Args:
             base_url: Canvas instance URL (e.g., "https://babson.instructure.com")
             api_token: Canvas API access token
+
+        Raises:
+            ValueError: If base_url is invalid or api_token is empty
         """
+        # Validate inputs
+        if not base_url or not isinstance(base_url, str):
+            raise ValueError("base_url must be a non-empty string")
+
+        if not api_token or not isinstance(api_token, str):
+            raise ValueError("api_token must be a non-empty string")
+
+        # Validate URL format
+        parsed = urlparse(base_url)
+        if not parsed.scheme or not parsed.netloc:
+            raise ValueError(
+                f"Invalid Canvas URL: {base_url}. "
+                "Must be a complete URL like https://school.instructure.com"
+            )
+
+        if parsed.scheme not in ['http', 'https']:
+            raise ValueError(f"Canvas URL must use http or https, got: {parsed.scheme}")
+
         self.base_url = base_url.rstrip('/')
         self.api_token = api_token
         self.headers = {"Authorization": f"Bearer {api_token}"}
@@ -182,7 +204,8 @@ class CanvasClient:
 
             except CanvasAPIError as e:
                 # Log error but continue with other courses
-                print(f"Warning: Could not fetch assignments from course {course_id}: {e}")
+                course_name = course_names.get(course_id, f"course {course_id}")
+                print(f"Warning: Could not fetch assignments from {course_name}: {e}")
                 continue
 
         return all_assignments
@@ -255,7 +278,8 @@ class CanvasClient:
 
             except CanvasAPIError as e:
                 # Log error but continue with other courses
-                print(f"Warning: Could not fetch announcements from course {course_id}: {e}")
+                course_name = course_names.get(course_id, f"course {course_id}")
+                print(f"Warning: Could not fetch announcements from {course_name}: {e}")
                 continue
 
         return all_announcements
@@ -321,7 +345,8 @@ class CanvasClient:
 
             except CanvasAPIError as e:
                 # Log error but continue with other courses
-                print(f"Warning: Could not fetch modules from course {course_id}: {e}")
+                course_name = course_names.get(course_id, f"course {course_id}")
+                print(f"Warning: Could not fetch modules from {course_name}: {e}")
                 continue
 
         return all_modules

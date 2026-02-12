@@ -110,7 +110,11 @@ def test_json_export(assignments, courses, output_dir):
 
     # Check date sorting
     assignments_data = data.get("assignments", [])
-    dates_with_nulls = [(a.get("Due Date"), a.get("Assignment")) for a in assignments_data]
+    # Handle case where assignments might not be dicts
+    if assignments_data and isinstance(assignments_data, list) and len(assignments_data) > 0 and isinstance(assignments_data[0], dict):
+        dates_with_nulls = [(a.get("Due Date"), a.get("Assignment")) for a in assignments_data]
+    else:
+        dates_with_nulls = []
     print(f"\n[CHECK] Date Sorting Check:")
     print(f"   - Total assignments: {len(dates_with_nulls)}")
     print(f"   - With dates: {sum(1 for d, _ in dates_with_nulls if d and d != 'No due date')}")
